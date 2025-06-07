@@ -2,12 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  canvas.width = window.innerWidth;
-  canvas.height = 300;
-
   let gravity = 1.5;
   let jumpPower = -20;
-  let groundY = canvas.height - 60;
+  let groundY;
 
   let score = 0;
   let isJumping = false;
@@ -29,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const dino = {
     x: 50,
-    y: groundY,
+    y: 0, // will set after resize
     width: dinoStanding.width,
     height: dinoStanding.height,
     color: '#2ecc71',
@@ -40,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const cactus = {
-    x: canvas.width,
-    y: groundY,
+    x: 0, // will set after resize
+    y: 0, // will set after resize
     width: 20,
     height: 40,
     color: '#e74c3c',
@@ -58,12 +55,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // Background ground properties for loop
   const ground = {
     x1: 0,
-    x2: canvas.width,
-    y: groundY + 40,
+    x2: 0, // will set after resize
+    y: 0,  // will set after resize
     height: 20,
     speed: 6,
     color: '#7f8c8d'
   };
+
+  // Resize canvas and adjust game elements
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    groundY = canvas.height - 60;
+
+    dino.y = gameStarted && !isJumping ? groundY : dino.y;
+
+    cactus.x = canvas.width;
+    cactus.y = groundY;
+
+    ground.x1 = 0;
+    ground.x2 = canvas.width;
+    ground.y = groundY + 40;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
   function spawnFlyingDino() {
     const heights = [groundY - 60, groundY - 100];
@@ -235,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
       gameOver = true;
       sounds.hit.play();
 
-      // Restart automatically after 2 seconds
       setTimeout(() => {
         startGame();
       }, 2000);
@@ -274,4 +289,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
-    if (isDucking) duck(false
+    if (isDucking) duck(false);
+    if (!gameOver && !isDucking

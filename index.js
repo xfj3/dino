@@ -1,58 +1,84 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 200;
+    // Responsive canvas
+    canvas.width = window.innerWidth;
+    canvas.height = 300;
 
-let dino = {
-    x: 50,
-    y: 150,
-    width: 40,
-    height: 40,
-    color: "green"
-};
+    // Game state
+    let isJumping = false;
+    let y = canvas.height - 60;
+    let velocity = 0;
+    const gravity = 1.5;
+    const jumpPower = -20;
 
-let gravity = 0.6;
-let velocityY = 0;
-let jumpForce = 12;
-let isJumping = false;
+    // Dino settings
+    const dino = {
+        x: 50,
+        y: y,
+        width: 40,
+        height: 40,
+        color: '#2ecc71'
+    };
 
-function drawDino() {
-    ctx.fillStyle = dino.color;
-    ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
-}
-
-function update() {
-    // Apply gravity
-    velocityY += gravity;
-    dino.y += velocityY;
-
-    // Ground collision
-    if (dino.y > 150) {
-        dino.y = 150;
-        velocityY = 0;
-        isJumping = false;
+    function drawDino() {
+        ctx.fillStyle = dino.color;
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
     }
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function update() {
+        if (isJumping) {
+            velocity += gravity;
+            dino.y += velocity;
 
-    // Draw dino
-    drawDino();
-
-    // Repeat
-    requestAnimationFrame(update);
-}
-
-// Handle key press
-document.addEventListener("keydown", function (event) {
-    if (event.code === "Space" || event.code === "ArrowUp") {
-        if (!isJumping) {
-            isJumping = true;
-            velocityY = -jumpForce;
+            if (dino.y >= y) {
+                dino.y = y;
+                isJumping = false;
+                velocity = 0;
+            }
         }
     }
-});
 
-// Start game loop
-update();
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawDino();
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Input handlers
+    function jump() {
+        if (!isJumping) {
+            isJumping = true;
+            velocity = jumpPower;
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.key === ' ') {
+            jump();
+        }
+    });
+
+    // Mobile touch support
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        jump();
+    }, { passive: false });
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = 300;
+        y = canvas.height - 60;
+        dino.y = y;
+    });
+
+    // Start the game loop
+    gameLoop();
+});
